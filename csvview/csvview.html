@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+    <title>CSV View</title>
+    <link href="tabulator/tabulator.css" rel="stylesheet">
+    <script type="text/javascript" src="tabulator/tabulator.js"></script>
+    <script type="text/javascript" src="papaparse/papaparse.js"></script>
+    <style>
+        html {
+            height: 100%;
+        }
+
+        body {
+            height: 100%;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="main-table" style="border:0px;"></div>
+
+    <script type="text/javascript">
+        //Build Tabulator
+        var table = new Tabulator("#main-table", {
+            height: "100%",
+            layout: "fitData",
+            pagination: "local",
+            footerElement: "<button id='download-json'>Download json Header</button><button id='download-json-data'>Download json Data</button>",
+            locale: "ja",
+            langs: {
+                "ja": {
+                    "groups": {
+                        "item": "item",
+                        "items": "items",
+                    },
+                    "columns": {},
+                    "data": {
+                        "loading": "読み込み中",
+                        "error": "エラー",
+                    },
+                    "pagination": {
+                        "page_size": "ページサイズ",
+                        "page_title": "Show Page",
+                        "first": "最初のページ",
+                        "first_title": "最初のページFirst Page",
+                        "last": "最後のページ",
+                        "last_title": "最後のページLast Page",
+                        "prev": "前ページ",
+                        "prev_title": "前のページPrev Page",
+                        "next": "次ページ",
+                        "next_title": "次のページNext Page",
+                        "all": "すべて",
+                    },
+                    "headerFilters": {
+                        "default": "filter column...",
+                        "columns": {}
+                    },
+                }
+            },
+        });
+
+        table.on("tableBuilt", function () {
+            document.getElementById("download-json").addEventListener("click", function () {
+                if (table.getDataCount() < 1) {
+                    alert("出力するものがないよ");
+                    return;
+                }
+
+                let fileFormatter = function (columns, options, setFileContents) {
+                    var names = [];
+                    columns.forEach(function (row) {
+                        if (row.type === "header") {
+                            row.columns.forEach(function (col) {
+                                names.push({
+                                    text: col.value,
+                                    value: col.value
+                                });
+                            });
+                            return;
+                        }
+                    });
+                    setFileContents(JSON.stringify(names, null, '\t'), "application/json");
+                }
+                table.download(fileFormatter, "header.json");
+            });
+
+            document.getElementById("download-json-data").addEventListener("click", function () {
+                if (table.getDataCount() < 1) {
+                    alert("出力するものがないよ");
+                    return;
+                }
+                let fileFormatter = function (columns, options, setFileContents) {
+                    let items = [];
+                    columns.forEach(function (row) {
+                        let item = {};
+                        if (row.type != "header") {
+                            row.columns.forEach(function (col) {
+                                item[col.component.getField()] = col.value;
+                            });
+                            items.push(item);
+                        }
+                    });
+                    setFileContents(JSON.stringify(items, null, '\t'), "application/json");
+                }
+                table.download(fileFormatter, "data.json");
+            });
+        });
+
+        // FileUpload処理
+        // ドラッグ&ドロップを許可する領域を取得
+        const dropArea = document.body;
+        dropArea.addEventListener("dragover", (event) => {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = "copy";
+        });
+        dropArea.addEventListener("drop", (event) => {
+            event.preventDefault();
+            var files = event.dataTransfer.files;
+            if (files.length == 0) {
+                // ファイルじゃない場合は無視
+                return;
+            }
+            if (files.length > 1) {
+                alert("ファイルは１つしかドラッグできません。");
+                return;
+            }
+            let file = files[0];
+            if (!file.name.match(/csv$/m)) {
+                alert("CSVファイル以外は表示できません。");
+                return;
+            }
+
+            let reader = new FileReader();
+            reader.onload = function (evt) {
+                let contents = reader.result;
+                let csv = Papa.parse(evt.target.result, {
+                    header: true,
+                    skipEmptyLines: true
+                });
+                let columns = [];
+                csv.meta.fields.forEach(item => {
+                    columns.push({
+                        title: item,
+                        field: item
+                    });
+                });
+                table.setColumns(columns);
+                table.setData(csv.data);
+            }
+            reader.readAsText(file, "shift-jis");
+        });
+    </script>
+</body>
+
+</html>

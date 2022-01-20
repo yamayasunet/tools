@@ -130,7 +130,7 @@
                 return;
             }
             let file = files[0];
-            if (!file.name.match(/csv$/m)) {
+            if (!file.name.match(/\.csv$/im)) {
                 alert("CSVファイル以外は表示できません。");
                 return;
             }

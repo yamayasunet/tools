@@ -27,7 +27,7 @@ jobs:
         run: |
           echo Hello, world! ${{ github.ref }}
           tree
-          md public
+          mkdir public
           cp -v -r csvview public
           tree
 

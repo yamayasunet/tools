@@ -23,11 +23,12 @@ jobs:
       - uses: actions/checkout@v2
 
       # Runs a single command using the runners shell
-      - name: Run a one-line script1
+      - name: build to public dir
         run: |
           echo Hello, world! ${{ github.ref }}
           tree
           mkdir public
+          cp -v index.html public
           cp -v -r csvview public
           tree
 
@@ -38,5 +39,5 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
-          destination_dir: csvview
+          destination_dir: ./
 

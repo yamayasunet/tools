@@ -30,6 +30,7 @@ jobs:
           mkdir public
           cp -v index.html public
           cp -v -r csvview public
+          cp -v -r imageresizer public
           tree
 
       # Runs a set of commands using the runners shell

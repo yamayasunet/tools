@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+    <title>Image Resizer</title>
+
+    <style>
+        html {
+            height: 100%;
+        }
+
+        body {
+            height: 100%;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    画像を読み込んで 120 x 120 の画像を作成します。<br />
+    表示された画像をクリックするとダウンロードできます。 <br />
+
+    <div id="main" style="border:0px;">
+
+    </div>
+
+    <script type="text/javascript">
+        const HEIGHT = 120;
+        const WIDTH = 120;
+
+        let sampleCanvas = document.createElement("canvas");
+        document.getElementById("main").appendChild(sampleCanvas);
+        document.getElementById("main").appendChild(document.createElement("br"));
+
+        sampleCanvas.height = HEIGHT;
+        sampleCanvas.width = WIDTH;
+        let sample2d = sampleCanvas.getContext("2d");
+        sample2d.fillStyle = "blue";
+        sample2d.fillRect(0, 0, sampleCanvas.width, sampleCanvas.height);
+
+        const dropArea = document.body;
+        dropArea.addEventListener("dragover", (event) => {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = "copy";
+        });
+        dropArea.addEventListener("drop", (event) => {
+            console.debug("ドラッグされたー");
+
+            event.preventDefault();
+            var files = event.dataTransfer.files;
+            if (files.length == 0) {
+                // ファイルじゃない場合は無視
+                return;
+            }
+            if (files.length > 1) {
+                alert("ファイルは１つしかドラッグできません。");
+                return;
+            }
+            let file = files[0];
+            if (!file.name.match(/\.jpg$/im)) {
+                alert("JPEG(jpg)ファイル以外は処理できません。");
+                return;
+            }
+            let filename = file.name;
+            console.debug("fileName:" + filename);
+
+            let reader = new FileReader();
+            reader.onload = function (evt) {
+                console.debug("画像よんだー");
+
+                let image = new Image();
+                image.src = reader.result;
+
+                image.onload = function () {
+
+                    //document.getElementById("main").appendChild(image);
+                    console.debug("image");
+                    console.debug("image height=" + image.height);
+                    console.debug("image width=" + image.width);
+
+                    let canvas = document.createElement("canvas");
+                    document.getElementById("main").appendChild(canvas);
+                    let canvas2d = canvas.getContext("2d");
+
+                    console.debug("縦長？横長？");
+
+                    let newHeight = HEIGHT;
+                    let newWidth = WIDTH;
+
+                    if (image.height > image.width) {
+                        console.debug("縦長画像と想定");
+                        let calcRatio = HEIGHT / image.height;
+                        newWidth = Math.ceil(image.width * calcRatio);
+                    } else {
+                        console.debug("横長画像と想定");
+                        let calcRatio = WIDTH / image.width;
+                        newHeight = Math.ceil(image.height * calcRatio);
+                    }
+                    console.debug("calced height=" + newHeight);
+                    console.debug("calced width=" + newWidth);
+
+                    // canvasの大きさを画像サイズに変更
+                    canvas.height = newHeight;
+                    canvas.width = newWidth;
+
+                    // キャンバスに書き込み
+                    canvas2d.imageSmoothingQuality = "high"; // 高画質設定 chrome only
+                    canvas2d.drawImage(image, 0, 0, newWidth, newHeight);
+
+                    canvas.onclick = function (ev) {
+                        let link = document.createElement("a");
+                        link.href = canvas.toDataURL("image/jpeg");
+                        link.download = filename.replace(/\.jpg$/im, "") + "-min.jpg";
+                        link.click();
+                    };
+
+                };
+
+            }
+            reader.readAsDataURL(file);
+        });
+    </script>
+</body>
+
+</html>

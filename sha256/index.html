@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+    <title>Sha256</title>
+
+    <style>
+        html {
+            height: 100%;
+        }
+
+        body {
+            height: 100%;
+            margin: 0;
+            text-align: center;
+        }
+
+        #main {
+            width: 80%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="main" style="border:0px; text-align: end;">
+        <div><label>パスワード：<input id="passwd" onchange="generateHash()" size="64" /></label></div>
+        <div><label>塩：<input id="salt" onchange="generateHash()" size="64" /></label></div>
+        <div><label>sha256：<input id="sha256" readonly="true" size="64" /></label></div>
+        <div><label>sha256(超大盛)：<input id="sha256_10k" readonly="true" size="64" /></label></div>
+    </div>
+
+    <script src="jssha/sha256.js"></script>
+    <script type="text/javascript">
+        let passwd = document.getElementById("passwd");
+        let salt = document.getElementById("salt");
+        let sha256 = document.getElementById("sha256");
+        let sha256_10k = document.getElementById("sha256_10k");
+
+        function generateHash() {
+            const SHA_OBJ = new jsSHA("SHA-256", "TEXT");
+            SHA_OBJ.update(passwd.value + salt.value);
+            sha256.value = SHA_OBJ.getHash("HEX");
+
+            let wk = "";
+            for (let v = 0; v < 10000; v++) {
+                const SHA_OBJ = new jsSHA("SHA-256", "TEXT");
+                SHA_OBJ.update(wk + passwd.value + salt.value);
+                wk = SHA_OBJ.getHash("HEX");
+            }
+            sha256_10k.value = wk;
+        }
+    </script>
+</body>
+
+</html>

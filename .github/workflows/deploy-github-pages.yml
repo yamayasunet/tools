@@ -32,6 +32,7 @@ jobs:
           cp -v -r csvview public
           cp -v -r imageresizer public
           cp -v -r sha256 public
+          cp -v -r font-preview public
           tree
 
       # Runs a set of commands using the runners shell

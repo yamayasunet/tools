@@ -38,7 +38,8 @@
         src: url("fonts/NotoSansJP-Regular.ttf");
       }
       .cell {
-        white-space: nowrap;
+        white-space: pre;
+        line-break: strict;
       }
       .title {
         margin-top: 20px;
@@ -96,7 +97,8 @@
   <body>
     <div id="app">
       <div style="margin-bottom: 30px">
-        文字　：<input type="text" v-model="text" style="width: 80%" /><br />
+        文字　：<textarea v-model="text" style="width: 80%" rows="3"></textarea>
+        <br />
         サイズ：<input
           type="range"
           min="5"
@@ -232,7 +234,7 @@
       createApp({
         data() {
           return {
-            text: "㋿5年度 文字の確認大会",
+            text: "123456789012345678901234567890\n㋿5年度 文字の確認大会",
             size: 10,
           };
         },

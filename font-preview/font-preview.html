@@ -37,6 +37,10 @@
         font-family: "notosan";
         src: url("fonts/NotoSansJP-Regular.ttf");
       }
+      @font-face {
+        font-family: "orenomin";
+        src: url("fonts/orenomin.ttf");
+      }
       .cell {
         white-space: pre;
         line-break: strict;
@@ -54,6 +58,9 @@
       }
       .font-msg {
         font-family: "MS Gothic", "LastResort";
+      }
+      .font-msm {
+        font-family: "MS Mincho", "LastResort";
       }
       .font-meiryo {
         font-family: "Meiryo", "LastResort";
@@ -78,6 +85,9 @@
       }
       .font-notosan {
         font-family: notosan, "LastResort";
+      }
+      .font-orenomin {
+        font-family: orenomin, "LastResort";
       }
       table {
         border-collapse: collapse;
@@ -130,6 +140,18 @@
           <th class="title">ＭＳ ゴシック</th>
           <td>
             <div class="cell font-msg" :style="previewStyle">{{text}}</div>
+          </td>
+        </tr>
+        <tr>
+          <th class="title">ＭＳ 明朝</th>
+          <td>
+            <div class="cell font-msm" :style="previewStyle">{{text}}</div>
+          </td>
+        </tr>
+        <tr>
+          <th class="title">俺の明朝</th>
+          <td>
+            <div class="cell font-orenomin" :style="previewStyle">{{text}}</div>
           </td>
         </tr>
         <tr>
@@ -195,7 +217,7 @@
         </thead>
         <tbody>
           <tr>
-            <td>MS ゴシック、メイリオ、游ゴシック(Windows App)</td>
+            <td>MS ゴシック、MS 明朝、メイリオ、游ゴシック(Windows App)</td>
             <td>Windows内のフォントを使用。Windows機以外は表示不可</td>
             <td>https://www.microsoft.com/ja-jp/</td>
           </tr>
@@ -215,6 +237,11 @@
             <td>Last Resort</td>
             <td>The Unicode Consortium</td>
             <td>https://github.com/unicode-org/last-resort-font</td>
+          </tr>
+          <tr>
+            <td>俺の明朝(仮)</td>
+            <td>yamayasu</td>
+            <td>https://github.com/yamayasunet</td>
           </tr>
         </tbody>
       </table>

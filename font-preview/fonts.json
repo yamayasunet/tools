@@ -1,0 +1,104 @@
+{
+  "windows": {
+    "font": "font-windows",
+    "name": "Windows App",
+    "summary": "Windows Application",
+    "url": "https://www.microsoft.com/ja-jp/windows"
+  },
+  "web_sans": {
+    "font": "font-web-sans",
+    "name": "Web ゴシック",
+    "summary": "Web ゴシックフォント(ブラウザ設定)",
+    "url": ""
+  },
+  "web_serif": {
+    "font": "font-web-serif",
+    "name": "Web 明朝",
+    "summary": "Web 明朝フォント(ブラウザ設定)",
+    "url": ""
+  },
+  "web_mono": {
+    "font": "font-web-mono",
+    "name": "Web 等幅",
+    "summary": "Web 等幅フォント(ブラウザ設定)",
+    "url": ""
+  },
+  "ms_gothic": {
+    "font": "font-ms-gothic",
+    "name": "ＭＳ ゴシック",
+    "summary": "Windows機でしか表示されません。",
+    "url": "https://www.microsoft.com/ja-jp/windows"
+  },
+  "ms_mincho": {
+    "font": "font-ms-mincho",
+    "name": "ＭＳ 明朝",
+    "summary": "Windows機でしか表示されません。",
+    "url": "https://www.microsoft.com/ja-jp/windows"
+  },
+  "ms_meiryo": {
+    "font": "font-ms-meiryo",
+    "name": "メイリオ",
+    "summary": "Windows機でしか表示されません。",
+    "url": "https://www.microsoft.com/ja-jp/windows"
+  },
+  "ms_yu_gothic": {
+    "font": "font-ms-yu-gothic",
+    "name": "游ゴシック",
+    "summary": "Windows機でしか表示されません。",
+    "url": "https://www.microsoft.com/ja-jp/windows"
+  },
+  "noto_sans": {
+    "font": "font-noto-sans",
+    "name": "Noto Sans Japanese",
+    "summary": "Noto ゴシック",
+    "url": "https://fonts.google.com/noto"
+  },
+  "noto_serif": {
+    "font": "font-noto-serif",
+    "name": "Noto Serif Japanese",
+    "summary": "Noto 明朝",
+    "url": "https://fonts.google.com/noto"
+  },
+  "noto_sans_mono": {
+    "font": "Noto Sans Mono Japanese",
+    "name": "Noto Sansの固定幅",
+    "summary": "説明",
+    "url": "https://fonts.google.com/noto"
+  },
+  "ipa_gothic": {
+    "font": "font-ipa-gothic",
+    "name": "IPA ゴシック",
+    "summary": "文字情報技術促進協議会 のフォント",
+    "url": "https://moji.or.jp/"
+  },
+  "ipa_mincho": {
+    "font": "font-ipa-mincho",
+    "name": "IPA 明朝",
+    "summary": "文字情報技術促進協議会 のフォント",
+    "url": "https://moji.or.jp/"
+  },
+  "ipa_ex_gothic": {
+    "font": "font-ipa-ex-gothic",
+    "name": "IPAex ゴシック",
+    "summary": "文字情報技術促進協議会 のフォント",
+    "url": "https://moji.or.jp/"
+  },
+  "ipa_ex_mincho": {
+    "font": "font-ipa-ex-mincho",
+    "name": "IPAex 明朝",
+    "summary": "文字情報技術促進協議会 のフォント",
+    "url": "https://moji.or.jp/"
+  },
+  "ipa_mj_mincho": {
+    "font": "font-ipa-mj-mincho",
+    "name": "IPAmj 明朝",
+    "summary": "文字情報技術促進協議会 のフォント",
+    "url": "https://moji.or.jp/"
+  },
+  "ore_no_mincho": {
+    "font": "font-ore-no-mincho",
+    "name": "俺の明朝(仮)",
+    "summary": "説明",
+    "url": ""
+  }
+}

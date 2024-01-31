@@ -95,6 +95,18 @@
     "summary": "文字情報技術促進協議会 のフォント",
     "url": "https://moji.or.jp/"
   },
+  "biz_ud_gothic": {
+    "font": "font-biz-ud-gothic",
+    "name": "BIZ UDゴシック",
+    "summary": "Morisawa BIZ UDGothic",
+    "url": "https://github.com/googlefonts/morisawa-biz-ud-gothic"
+  },
+  "biz_ud_mincho": {
+    "font": "font-biz-ud-mincho",
+    "name": "BIZ UD明朝",
+    "summary": "Morisawa BIZ UDMincho",
+    "url": "https://github.com/googlefonts/morisawa-biz-ud-mincho"
+  },
   "ore_no_mincho": {
     "font": "font-ore-no-mincho",
     "name": "俺の明朝(仮)",

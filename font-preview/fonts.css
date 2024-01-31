@@ -45,6 +45,15 @@
   src: url("fonts/orenomin.ttf");
 }
 
+@font-face {
+  font-family: "BIZ UDGothic";
+  src: url("fonts/BIZUDGothic-Regular.ttf");
+}
+@font-face {
+  font-family: "BIZ UDMincho";
+  src: url("fonts/BIZUDMincho-Regular.ttf");
+}
+
 /* Fontの定義 */
 .font-windows {
   font-family: system-ui;
@@ -98,6 +107,14 @@
 }
 .font-ipa-mj-mincho {
   font-family: "IPAmj明朝", "Last Resort";
+}
+
+/* モリサワ BIZ UD */
+.font-biz-ud-gothic {
+  font-family: "BIZ UDGothic", "Last Resort";
+}
+.font-biz-ud-mincho {
+  font-family: "BIZ UDMincho", "Last Resort";
 }
 
 /* 独自形式 */

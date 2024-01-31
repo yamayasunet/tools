@@ -4,104 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>フォントの確認</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      @font-face {
-        font-family: "LastResort";
-        src: url("fonts/LastResort-Regular.ttf");
-      }
-      @font-face {
-        font-family: "ipag";
-        src: url("fonts/ipag.ttf");
-      }
-      @font-face {
-        font-family: "ipam";
-        src: url("fonts/ipam.ttf");
-      }
-      @font-face {
-        font-family: "ipaexg";
-        src: url("fonts/ipaexg.ttf");
-      }
-      @font-face {
-        font-family: "ipaexm";
-        src: url("fonts/ipaexm.ttf");
-      }
-      @font-face {
-        font-family: "ipamjm";
-        src: url("fonts/ipamjm.ttf");
-      }
-      @font-face {
-        font-family: "notosan";
-        src: url("fonts/NotoSansJP-Regular.ttf");
-      }
-      @font-face {
-        font-family: "orenomin";
-        src: url("fonts/orenomin.ttf");
-      }
-      .cell {
-        white-space: pre;
-        line-break: strict;
-      }
-      .title {
-        margin-top: 20px;
-        white-space: nowrap;
-        background-color: beige;
-      }
-      .font-windows {
-        font-family: "Yu Gothic UI", "Microsoft JhengHei";
-      }
-      .font-web {
-        font-family: "Noto Sans JP", "Microsoft JhengHei", sans-serif;
-      }
-      .font-msg {
-        font-family: "MS Gothic", "LastResort";
-      }
-      .font-msm {
-        font-family: "MS Mincho", "LastResort";
-      }
-      .font-meiryo {
-        font-family: "Meiryo", "LastResort";
-      }
-      .font-yug {
-        font-family: "Yu Gothic", "LastResort";
-      }
-      .font-ipag {
-        font-family: ipag, "LastResort";
-      }
-      .font-ipam {
-        font-family: ipam, "LastResort";
-      }
-      .font-ipaexg {
-        font-family: ipaexg, "LastResort";
-      }
-      .font-ipaexm {
-        font-family: ipaexm, "LastResort";
-      }
-      .font-ipamjm {
-        font-family: ipamjm, "LastResort";
-      }
-      .font-notosan {
-        font-family: notosan, "LastResort";
-      }
-      .font-orenomin {
-        font-family: orenomin, "LastResort";
-      }
-      table {
-        border-collapse: collapse;
-        border-spacing: 0px;
-      }
-      th {
-        background-color: lightgreen;
-      }
-      table,
-      th,
-      td {
-        border: 1px solid black;
-      }
-    </style>
+    <link href="./reset.css" rel="stylesheet" />
+    <link href="./fonts.css" rel="stylesheet" />
   </head>
 
   <body>
@@ -109,141 +13,32 @@
       <div style="margin-bottom: 30px">
         文字　：<textarea v-model="text" style="width: 80%" rows="3"></textarea>
         <br />
-        サイズ：<input
-          type="range"
-          min="5"
-          max="200"
-          style="width: 50%"
-          v-model="size"
-        />
+        サイズ：<input type="range" min="5" max="200" style="width: 50%" v-model="size" />
         {{size}} px
       </div>
+
+      <div class="flex-container">
+        <div class="flex-item" v-for="k in Object.keys(fonts)">
+          <label :class="{active: checks.includes(k)}">
+            {{fonts[k].name}}
+            <input type="checkbox" class="check-hidden" v-model="checks" :value="k" />
+          </label>
+        </div>
+      </div>
+
+      <hr />
 
       <table>
         <tr>
           <th>Name</th>
           <th>Preview</th>
         </tr>
-        <tr>
-          <th class="title">Windows App</th>
-          <td>
-            <div class="cell font-windows" :style="previewStyle">{{text}}</div>
+        <tr v-for="k in checks">
+          <th class="title">{{fonts[k].name}}</th>
+          <td class="cell">
+            <div :class="fonts[k].font" :style="{ 'font-size': fontSize }">{{text}}</div>
           </td>
         </tr>
-        <tr>
-          <th class="title">Web App</th>
-          <td>
-            <div class="cell font-web" :style="previewStyle">{{text}}</div>
-          </td>
-        </tr>
-        <tr>
-          <th class="title">ＭＳ ゴシック</th>
-          <td>
-            <div class="cell font-msg" :style="previewStyle">{{text}}</div>
-          </td>
-        </tr>
-        <tr>
-          <th class="title">ＭＳ 明朝</th>
-          <td>
-            <div class="cell font-msm" :style="previewStyle">{{text}}</div>
-          </td>
-        </tr>
-        <tr>
-          <th class="title">俺の明朝</th>
-          <td>
-            <div class="cell font-orenomin" :style="previewStyle">{{text}}</div>
-          </td>
-        </tr>
-        <tr>
-          <th class="title">メイリオ</th>
-          <td>
-            <div class="cell font-meiryo" :style="previewStyle">{{text}}</div>
-          </td>
-        </tr>
-        <tr>
-          <th class="title">游ゴシック</th>
-          <td>
-            <div class="cell font-yug" :style="previewStyle">{{text}}</div>
-          </td>
-        </tr>
-        <tr>
-          <th class="title">IPA ゴシック</th>
-          <td>
-            <div class="cell font-ipag" :style="previewStyle">{{text}}</div>
-          </td>
-        </tr>
-        <tr>
-          <th class="title">IPA 明朝</th>
-          <td>
-            <div class="cell font-ipam" :style="previewStyle">{{text}}</div>
-          </td>
-        </tr>
-        <tr>
-          <th class="title">IPAex ゴシック</th>
-          <td>
-            <div class="cell font-ipaexg" :style="previewStyle">{{text}}</div>
-          </td>
-        </tr>
-        <tr>
-          <th class="title">IPAex 明朝</th>
-          <td>
-            <div class="cell font-ipaexm" :style="previewStyle">{{text}}</div>
-          </td>
-        </tr>
-        <tr>
-          <th class="title">IPAmj 明朝</th>
-          <td>
-            <div class="cell font-ipamjm" :style="previewStyle">{{text}}</div>
-          </td>
-        </tr>
-        <tr>
-          <th class="title">Noto Sans JP</th>
-          <td>
-            <div class="cell font-notosan" :style="previewStyle">{{text}}</div>
-          </td>
-        </tr>
-      </table>
-      <br />
-      <br />
-      <br />
-      <b>使用しているフォント</b>
-      <table>
-        <thead>
-          <tr>
-            <th>Font</th>
-            <th>説明</th>
-            <th>URL</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>MS ゴシック、MS 明朝、メイリオ、游ゴシック(Windows App)</td>
-            <td>Windows内のフォントを使用。Windows機以外は表示不可</td>
-            <td>https://www.microsoft.com/ja-jp/</td>
-          </tr>
-          <tr>
-            <td>
-              IPA ゴシック、IPA 明朝、IPAex ゴシック、IPAex 明朝、IPAmj 明朝
-            </td>
-            <td>文字情報技術促進協議会</td>
-            <td>https://moji.or.jp/</td>
-          </tr>
-          <tr>
-            <td>Noto Sans JP、Web App</td>
-            <td>Noto Fonts(Google)</td>
-            <td>https://github.com/notofonts/noto-cjk</td>
-          </tr>
-          <tr>
-            <td>Last Resort</td>
-            <td>The Unicode Consortium</td>
-            <td>https://github.com/unicode-org/last-resort-font</td>
-          </tr>
-          <tr>
-            <td>俺の明朝(仮)</td>
-            <td>yamayasu</td>
-            <td>https://github.com/yamayasunet</td>
-          </tr>
-        </tbody>
       </table>
     </div>
 
@@ -257,18 +52,24 @@
 
     <script type="module">
       import { createApp } from "vue";
+      import FONTS from "./fonts.json" assert { type: "json" };
 
       createApp({
         data() {
           return {
+            fonts: FONTS,
             text: "123456789012345678901234567890\n㋿5年度 文字の確認大会",
             size: 10,
+            checks: ["windows"],
           };
         },
         computed: {
-          previewStyle() {
-            return { fontSize: `${this.size}px` };
+          fontSize() {
+            return `${this.size}px`;
           },
+        },
+        created() {
+          this.checks = Object.keys(this.fonts).slice(0, 4);
         },
       }).mount("#app");
     </script>

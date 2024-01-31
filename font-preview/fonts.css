@@ -1,0 +1,159 @@
+@charset "utf-8";
+
+/* fontとファイルの指定 */
+@font-face {
+  font-family: "Last Resort";
+  src: url("fonts/LastResort-Regular.ttf");
+}
+
+@font-face {
+  font-family: "Noto Sans JP";
+  src: url("fonts/NotoSansCJKjp-VF.ttf");
+}
+@font-face {
+  font-family: "Noto Sans Mono JP";
+  src: url("fonts/NotoSansMonoCJKjp-VF.ttf");
+}
+@font-face {
+  font-family: "Noto Serif JP";
+  src: url("fonts/NotoSerifCJKjp-VF.ttf");
+}
+
+@font-face {
+  font-family: "IPA ゴシック";
+  src: url("fonts/ipag.ttf");
+}
+@font-face {
+  font-family: "IPA 明朝";
+  src: url("fonts/ipam.ttf");
+}
+@font-face {
+  font-family: "IPAexゴシック";
+  src: url("fonts/ipaexg.ttf");
+}
+@font-face {
+  font-family: "IPAex明朝";
+  src: url("fonts/ipaexm.ttf");
+}
+@font-face {
+  font-family: "IPAmj明朝";
+  src: url("fonts/ipamjm.ttf");
+}
+
+@font-face {
+  font-family: "俺の明朝";
+  src: url("fonts/orenomin.ttf");
+}
+
+/* Fontの定義 */
+.font-windows {
+  font-family: system-ui;
+}
+.font-web-sans {
+  font-family: sans-serif;
+}
+.font-web-serif {
+  font-family: serif;
+}
+.font-web-mono {
+  font-family: monospace;
+}
+
+.font-ms-gothic {
+  font-family: "MS Gothic", "Last Resort";
+}
+.font-ms-mincho {
+  font-family: "MS Mincho", "Last Resort";
+}
+.font-ms-meiryo {
+  font-family: "Meiryo", "Last Resort";
+}
+.font-ms-yu-gothic {
+  font-family: "Yu Gothic", "Last Resort";
+}
+
+/* Google Noto系 */
+.font-noto-sans {
+  font-family: "Noto Sans JP", "Last Resort";
+}
+.font-noto-serif {
+  font-family: "Noto Serif JP", "Last Resort";
+}
+.font-noto-sans-mono {
+  font-family: "Noto Sans Mono JP", "Last Resort";
+}
+
+/* IPAフォント系 */
+.font-ipa-gothic {
+  font-family: "IPA ゴシック", "Last Resort";
+}
+.font-ipa-mincho {
+  font-family: "IPA 明朝", "Last Resort";
+}
+.font-ipa-ex-gothic {
+  font-family: "IPAexゴシック", "Last Resort";
+}
+.font-ipa-ex-mincho {
+  font-family: "IPAex明朝", "Last Resort";
+}
+.font-ipa-mj-mincho {
+  font-family: "IPAmj明朝", "Last Resort";
+}
+
+/* 独自形式 */
+.font-ore-no-mincho {
+  font-family: "俺の明朝", "Last Resort";
+}
+
+/* 全体的な設定 */
+.cell {
+  white-space: pre;
+  line-break: strict;
+}
+.title {
+  margin-top: 20px;
+  white-space: nowrap;
+  background-color: beige;
+}
+
+.flex-container {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  align-items: center;
+  align-content: flex-start;
+}
+.flex-item {
+  border: 1px solid black;
+}
+.flex-item label {
+  padding: 8px 20px;
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+label.active {
+  background-color: pink;
+}
+.check-hidden {
+  display: none;
+}
+
+body {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+table {
+  border-collapse: collapse;
+  border-spacing: 0px;
+}
+th {
+  background-color: lightgreen;
+}
+table,
+th,
+td {
+  border: 1px solid black;
+}

@@ -126,8 +126,10 @@
 .cell {
   white-space: pre;
   line-break: strict;
+  padding: 0px 15px;
 }
 .title {
+  padding: 0px 10px;
   margin-top: 20px;
   white-space: nowrap;
   background-color: beige;

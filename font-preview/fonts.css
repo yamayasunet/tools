@@ -41,6 +41,11 @@
 }
 
 @font-face {
+  font-family: "DWPI明朝";
+  src: url("fonts/DWPIMincho.ttf");
+}
+
+@font-face {
   font-family: "俺の明朝";
   src: url("fonts/orenomin.ttf");
 }
@@ -107,6 +112,9 @@
 }
 .font-ipa-mj-mincho {
   font-family: "IPAmj明朝", "Last Resort";
+}
+.font-dwpi-mincho {
+  font-family: "DWPI明朝", "Last Resort";
 }
 
 /* モリサワ BIZ UD */

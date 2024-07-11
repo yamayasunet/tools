@@ -107,6 +107,12 @@
     "summary": "Morisawa BIZ UDMincho",
     "url": "https://github.com/googlefonts/morisawa-biz-ud-mincho"
   },
+  "ipa_mj_mincho": {
+    "font": "font-ore-no-mincho",
+    "name": "DWPI明朝",
+    "summary": "一般社団法人デジタル広域推進機構 のフォント",
+    "url": "https://www.digitalwidearea.org/"
+  },
   "ore_no_mincho": {
     "font": "font-ore-no-mincho",
     "name": "俺の明朝(仮)",

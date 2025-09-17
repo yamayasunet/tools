@@ -1,0 +1,111 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>しばらく不在にしています...</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      font-size: 48px;
+      position: relative;
+      animation: skyCycle 20s linear forwards;
+      background-color: #FFF8DC;
+    }
+
+    @keyframes skyCycle {
+      0%     { background-color: #FFF8DC; }
+      10%    { background-color: #87CEEB; }
+      80%    { background-color: #87CEEB; }
+      85%    { background-color: #FFA07A; }
+      90%    { background-color: #2C3E50; }
+      100%   { background-color: #2C3E50; }
+    }
+
+    .ground {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 40vh;
+      background-color: #6bbf59;
+      z-index: 0;
+    }
+
+    .scene {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 200px;
+      z-index: 1;
+    }
+
+    .house {
+      position: absolute;
+      left: 50px;
+      bottom: calc(40vh - 2vh);
+      font-size: 96px;
+    }
+
+    .duck {
+      position: absolute;
+      right: -100px;
+      bottom: calc(40vh - 1vh);
+      animation: moveDuck 15s linear forwards;
+      animation-delay: 3s;
+    }
+
+    @keyframes moveDuck {
+      0%   { right: -100px; }
+      100% { right: calc(100% - 150px); }
+    }
+
+    .moon {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 64px;
+      opacity: 0;
+      animation: showMoon 2s ease-in forwards;
+      animation-delay: 18s;
+    }
+
+    @keyframes showMoon {
+      to { opacity: 1; }
+    }
+
+    .error {
+      font-family: cursive;
+      position: absolute;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 48px;
+      color: #FFD700;
+      opacity: 0;
+      animation: firework 2s ease-out forwards;
+      animation-delay: 18s;
+      text-shadow: 0 0 10px #FFD700, 0 0 20px #FF4500;
+    }
+
+    @keyframes firework {
+      0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+      50%  { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+      100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <div class="ground"></div>
+
+  <div class="scene">
+    <div class="duck">🦆</div>
+    <div class="house">🏠</div>
+  </div>
+
+  <div class="moon">🌙</div>
+  <div class="error">404 Page Not Found</div>
+</body>
+</html>
+

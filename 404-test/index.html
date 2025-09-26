@@ -3,18 +3,22 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>しばらく不在にしています...</title>
   <style>
     body {
       margin: 0;
-      height: 100vh;
+      height: 100%;
+      min-height: 100vh;
       overflow: hidden;
       font-size: 48px;
       position: relative;
       animation: skyCycle 20s linear forwards;
       background-color: #FFF8DC;
     }
-
+    * {
+      box-sizing: border-box;
+    }
     @keyframes skyCycle {
       0%     { background-color: #FFF8DC; }
       10%    { background-color: #87CEEB; }

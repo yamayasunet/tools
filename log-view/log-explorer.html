@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Log Explorer</title>
+    <link rel="stylesheet" href="./css/element-plus.css">
+    <link rel="stylesheet" href="./css/site.css">
+    <style>
+        [v-cloak] { display: none; }
+        .pagination-container {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 20px; margin-top: 10px;
+            background-color: #f5f7fa; border-radius: 8px; border: 1px solid #ebeef5;
+        }
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .sync-box-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .el-message-box__message { width: 100%; }
+        .font-bold { font-weight: bold; }
+        .text-success { color: #67C23A; }
+        .text-warning { color: #E6A23C; }
+        .text-danger { color: #F56C6C; }
+    </style>
+</head>
+<body>
+    <div id="app" v-cloak>
+        <transition name="el-fade-in">
+            <div v-if="!isEngineReady" style="position:fixed; inset:0; z-index:2000; display:flex; align-items:center; justify-content:center; background:#fff;">
+                <div style="text-align:center;">
+                    <el-icon class="is-loading" :size="40" color="#409EFF"><loading /></el-icon>
+                    <p style="margin-top:16px; color:#909399;">システム準備中...</p>
+                </div>
+            </div>
+        </transition>
+
+        <el-container style="height: 100vh; display: flex; flex-direction: column;">
+            <el-header height="60px" class="header-container">
+                <div class="header-left">
+                    <span class="logo-text">📊 Log Explorer</span>
+                </div>
+                <div style="margin-left: auto;">
+                    <el-button type="danger" plain @click="clearLocalData">キャッシュ削除</el-button>
+                </div>
+            </el-header>
+
+            <el-main class="main-wrapper">
+                <el-card shadow="never" style="flex-shrink: 0;">
+                    <div class="search-box">
+                        <el-input v-model="whereClause" placeholder="例: status >= 400" @keyup.enter="resetAndSearch" clearable :disabled="!canSearch">
+                            <template #prepend>検索条件</template>
+                        </el-input>
+                        <el-button type="primary" @click="resetAndSearch" :disabled="searching || !canSearch">検索</el-button>
+                        <el-button @click="clearSearch" :disabled="searching || !canSearch">リセット</el-button>
+                        <el-button type="success" @click="exportCSV" :disabled="searching || !canSearch || totalCount === 0" :loading="exporting">CSV出力</el-button>
+                    </div>
+                    <el-alert v-if="sqlError" :title="sqlError" type="error" show-icon style="margin-top:8px;" @close="sqlError = ''" />
+                </el-card>
+
+                <div ref="tableContainer" class="table-container" v-loading="searching">
+                    <el-table :data="results" border stripe height="100%" @sort-change="handleSort" :default-sort="{ prop: 'timestamp', order: 'descending' }">
+                        <el-table-column prop="timestamp" label="timestamp" width="180" sortable="custom" fixed resizable></el-table-column>
+                        <el-table-column prop="duration" label="duration" width="100" sortable="custom" align="right"></el-table-column>
+                        <el-table-column prop="srcip" label="srcip" width="130" sortable="custom"></el-table-column>
+                        
+                        <el-table-column prop="status" label="status" width="80" sortable="custom" align="center">
+                            <template #default="{ row }">
+                                <el-tag :type="row.status >= 400 ? 'danger' : 'success'" size="small">{{ row.status }}</el-tag>
+                            </template>
+                        </el-table-column>
+
+                        <el-table-column prop="tcp_result" label="tcp_result" width="120" sortable="custom"></el-table-column>
+                        <el-table-column prop="req_size" label="req_size" width="100" sortable="custom" align="right"></el-table-column>
+                        <el-table-column prop="resp_size" label="resp_size" width="100" sortable="custom" align="right"></el-table-column>
+                        <el-table-column prop="method" label="method" width="90" sortable="custom" align="center"></el-table-column>
+                        <el-table-column prop="scheme" label="scheme" width="80" sortable="custom"></el-table-column>
+                        <el-table-column prop="host" label="host" width="200" sortable="custom" show-overflow-tooltip></el-table-column>
+                        <el-table-column prop="path" label="path" width="250" sortable="custom" show-overflow-tooltip></el-table-column>
+                        <el-table-column prop="query" label="query" width="200" sortable="custom" show-overflow-tooltip></el-table-column>
+                        <el-table-column prop="user" label="user" width="100" sortable="custom"></el-table-column>
+                        <el-table-column prop="connection_type" label="connection_type" width="150" sortable="custom"></el-table-column>
+                        <el-table-column prop="desthost" label="desthost" width="150" sortable="custom"></el-table-column>
+                        <el-table-column prop="mime" label="mime" width="150" sortable="custom"></el-table-column>
+                        <el-table-column prop="user-agent" label="user-agent" width="200" sortable="custom" show-overflow-tooltip></el-table-column>
+                        <el-table-column prop="action" label="action" width="100" sortable="custom"></el-table-column>
+                        <el-table-column prop="category" label="category" width="150" sortable="custom"></el-table-column>
+                        <el-table-column prop="exception" label="exception" width="150" sortable="custom"></el-table-column>
+                        <el-table-column prop="sg_ip" label="sg_ip" width="130" sortable="custom"></el-table-column>
+                        <el-table-column prop="service" label="service" width="120" sortable="custom"></el-table-column>
+                    </el-table>
+                </div>
+
+                <div class="pagination-container">
+                    <span class="total-count">件数: {{ totalCount.toLocaleString() }} 件</span>
+                    <el-pagination
+                        v-model:current-page="currentPage"
+                        :page-size="pageSize"
+                        :background="true"
+                        layout="prev, pager, next, jumper"
+                        :pager-count="11"
+                        :total="totalCount"
+                        :disabled="!canSearch"
+                        @current-change="handleSearch"
+                    />
+                </div>
+            </el-main>
+        </el-container>
+    </div>
+
+    <script src="./js/vue.global.js"></script>
+    <script src="./js/element-plus.js"></script>
+    <script src="./js/icons-vue.js"></script>
+
+    <script type="module">
+        import * as duckdb from './js/duckdb-wasm/duckdb-full.mjs';
+        const { createApp, ref, computed, onMounted, onUnmounted, shallowRef, nextTick, h } = Vue;
+
+        createApp({
+            setup() {
+                const results = shallowRef([]);
+                const whereClause = ref("");
+                const searching = ref(false);
+                const exporting = ref(false);
+                const isEngineReady = ref(false);
+                const dataLoaded = ref(false);
+                const sqlError = ref("");
+                const tableContainer = ref(null);
+                
+                const currentPage = ref(1);
+                const pageSize = ref(25);
+                const totalCount = ref(0);
+                const currentSort = ref("ORDER BY timestamp DESC");
+                const canSearch = computed(() => dataLoaded.value);
+
+                let db = null, conn = null;
+
+                const updatePageSize = () => {
+                    if (tableContainer.value) {
+                        pageSize.value = Math.max(Math.floor((tableContainer.value.clientHeight - 60) / 40), 10);
+                    }
+                };
+
+                const initEngine = async () => {
+                    try {
+                        const base = new URL('./js/duckdb-wasm/', window.location.href).href;
+                        const MANUAL_BUNDLES = {
+                            mvp: { mainModule: `${base}duckdb-mvp.wasm`, mainWorker: `${base}duckdb-browser-mvp.worker.js` },
+                            eh: { mainModule: `${base}duckdb-eh.wasm`, mainWorker: `${base}duckdb-browser-eh.worker.js` }
+                        };
+                        const bundle = await duckdb.selectBundle(MANUAL_BUNDLES);
+                        const worker = await duckdb.createWorker(bundle.mainWorker);
+                        db = new duckdb.AsyncDuckDB(new duckdb.ConsoleLogger(), worker);
+                        await db.instantiate(bundle.mainModule);
+                        conn = await db.connect();
+                        await conn.query(`SET allow_extensions_metadata_mismatch=true; LOAD '${new URL('./js/duckdb-wasm/extensions/parquet.duckdb_extension.wasm', window.location.href).href}';`);
+                        
+                        isEngineReady.value = true;
+                        window.addEventListener('resize', updatePageSize);
+                        nextTick(updatePageSize);
+                        await autoSyncData();
+                    } catch (e) {
+                        sqlError.value = "エンジンの準備に失敗しました。";
+                        isEngineReady.value = true;
+                    }
+                };
+
+                const autoSyncData = async () => {
+                    const progress = ref(0);
+                    const statusText = ref("構成ファイル読み取り中...");
+                    
+                    ElementPlus.ElMessageBox({
+                        title: 'データの同期',
+                        customStyle: { 'width': '500px', 'max-width': '95%' },
+                        message: () => h('div', { class: 'sync-box-container' }, [
+                            h('div', { style: 'margin-bottom: 20px; font-weight: bold; text-align: center;' }, statusText.value),
+                            h('div', { style: 'width: 100%; padding: 0 15px; box-sizing: border-box;' }, [
+                                h(ElementPlus.ElProgress, { percentage: progress.value, striped: true, 'striped-flow': true, strokeWidth: 22, textInside: true })
+                            ])
+                        ]),
+                        showConfirmButton: false,
+                        closeOnClickModal: false,
+                        center: true
+                    });
+
+                    try {
+                        const jsonRes = await fetch('./datas/datas.json');
+                        if (!jsonRes.ok) throw new Error("datas/datas.json が見つかりません。");
+                        const fileNames = await jsonRes.json();
+
+                        const root = await navigator.storage.getDirectory();
+                        const dir = await root.getDirectoryHandle('log_cache', { create: true });
+                        const viewFiles = [];
+
+                        for (let i = 0; i < fileNames.length; i++) {
+                            const fname = fileNames[i];
+                            statusText.value = `処理中 (${i + 1}/${fileNames.length}): ${fname}`;
+                            progress.value = Math.floor((i / fileNames.length) * 100);
+
+                            let handle;
+                            let needsFetch = true;
+
+                            try {
+                                handle = await dir.getFileHandle(fname);
+                                needsFetch = false;
+                            } catch (e) {
+                                // ファイルが存在しない場合
+                            }
+
+                            if (needsFetch) {
+                                statusText.value = `ダウンロード中: ${fname}`;
+                                const fileRes = await fetch(`./datas/${fname}?t=${Date.now()}`);
+                                if (fileRes.ok) {
+                                    handle = await dir.getFileHandle(fname, { create: true });
+                                    const writer = await handle.createWritable();
+                                    await writer.write(await fileRes.blob());
+                                    await writer.close();
+                                }
+                            }
+
+                            if (handle) {
+                                await db.registerFileHandle(fname, await handle.getFile(), duckdb.DuckDBDataProtocol.BROWSER_FILEREADER, false);
+                                viewFiles.push(`'${fname}'`);
+                            }
+                        }
+
+                        await conn.query(`DROP VIEW IF EXISTS logs`);
+                        if (viewFiles.length > 0) {
+                            await conn.query(`CREATE VIEW logs AS SELECT * FROM read_parquet([${viewFiles.join(',')}])`);
+                            dataLoaded.value = true;
+                        }
+
+                        progress.value = 100;
+                        statusText.value = "完了";
+                        setTimeout(() => ElementPlus.ElMessageBox.close(), 600);
+                        resetAndSearch();
+
+                    } catch (e) {
+                        ElementPlus.ElMessageBox.close();
+                        sqlError.value = "同期エラー: " + e.message;
+                    }
+                };
+
+                const handleSearch = async () => {
+                    if (!canSearch.value || !conn) return;
+                    searching.value = true;
+                    try {
+                        const baseWhere = whereClause.value.trim() || '1=1';
+                        const countRes = await conn.query(`SELECT COUNT(*) as total FROM logs WHERE ${baseWhere}`);
+                        totalCount.value = Number(countRes.toArray()[0].toJSON().total);
+                        
+                        const offset = (currentPage.value - 1) * pageSize.value;
+                        const res = await conn.query(`SELECT * FROM logs WHERE ${baseWhere} ${currentSort.value} LIMIT ${pageSize.value} OFFSET ${offset}`);
+                        
+                        results.value = res.toArray().map(row => {
+                            const obj = row.toJSON();
+                            for (let k in obj) if (typeof obj[k] === 'bigint') obj[k] = Number(obj[k]);
+                            return obj;
+                        });
+                    } catch (e) { 
+                        sqlError.value = "検索失敗: " + e.message; 
+                    } finally { 
+                        searching.value = false; 
+                    }
+                };
+
+                const clearLocalData = async () => {
+                    try {
+                        await ElementPlus.ElMessageBox.confirm('キャッシュを削除して再読み込みしますか？', '確認');
+                        const root = await navigator.storage.getDirectory();
+                        await root.removeEntry('log_cache', { recursive: true });
+                        location.reload();
+                    } catch {}
+                };
+
+                const resetAndSearch = () => { currentPage.value = 1; handleSearch(); };
+                const clearSearch = () => { whereClause.value = ""; resetAndSearch(); };
+                const handleSort = ({ prop, order }) => {
+                    currentSort.value = order ? `ORDER BY "${prop}" ${order === 'descending' ? 'DESC' : 'ASC'}` : "ORDER BY timestamp DESC";
+                    handleSearch();
+                };
+
+                const exportCSV = async () => {
+                    if (!canSearch.value || !conn) return;
+                    exporting.value = true;
+                    try {
+                        const csvName = `export.csv`;
+                        await conn.query(`COPY (SELECT * FROM logs WHERE ${whereClause.value.trim() || '1=1'} ${currentSort.value}) TO '${csvName}' (HEADER, DELIMITER ',')`);
+                        const buffer = await db.copyFileToBuffer(csvName);
+                        const a = document.createElement('a');
+                        a.href = window.URL.createObjectURL(new Blob([buffer], { type: 'text/csv' }));
+                        a.download = `logs_export.csv`;
+                        a.click();
+                        await db.dropFile(csvName);
+                    } catch (e) { 
+                        sqlError.value = "CSV出力に失敗しました。"; 
+                    } finally { 
+                        exporting.value = false; 
+                    }
+                };
+
+                onMounted(initEngine);
+                onUnmounted(() => window.removeEventListener('resize', updatePageSize));
+
+                return {
+                    tableContainer, results, whereClause, searching, exporting, isEngineReady, dataLoaded,
+                    clearLocalData, canSearch,
+                    currentPage, pageSize, totalCount, sqlError,
+                    handleSearch, resetAndSearch, handleSort, clearSearch, exportCSV
+                };
+            }
+        }).component('loading', ElementPlusIconsVue.Loading).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

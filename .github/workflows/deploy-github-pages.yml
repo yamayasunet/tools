@@ -35,6 +35,7 @@ jobs:
           cp -v -r font-preview public
           cp -v -r 404-test public
           cp -v -r log-view public
+          cp -v -r unicode-view public
           tree
 
       # Runs a set of commands using the runners shell

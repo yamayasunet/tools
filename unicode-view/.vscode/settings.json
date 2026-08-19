@@ -1,0 +1,14 @@
+{
+  "editor.tabSize": 2, // Tabサイズ
+  "editor.formatOnPaste": true, // 貼り付けを行ったときに自動でフォーマット
+  "editor.formatOnSave": true, // ファイル保存時に自動でフォーマット
+  "editor.formatOnType": true,
+  "markdown-preview-enhanced.enableExtendedTableSyntax": true,
+  "editor.fontFamily": "monospace", // 入力した行を自動でフォーマット
+  "[json]": {
+    "prettier.printWidth": 500 // JSONファイルのみ幅を広げる
+  },
+  "[html]": {
+    "prettier.printWidth": 200
+  }
+}

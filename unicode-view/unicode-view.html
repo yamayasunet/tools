@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Unicode一覧</title>
+    <script src="./js/vue.global.prod.js"></script>
+    <link rel="stylesheet" href="css/main.css" />
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <template id="app-template">
+      <div class="main-container">
+        <nav class="sidebar" ref="sidebarRef">
+          <div v-if="loading" class="loading-text">データを読み込んでいます...</div>
+          <label v-for="block in unicodeBlocks" :key="block.id" :data-id="block.id" class="block-label" :class="{ active: selectedBlockId === block.id }">
+            <input type="radio" name="unicode-block" :value="block.id" v-model="selectedBlockId" />
+            <span class="block-text">
+              <span>{{ block.nameJa }}</span>
+              <span class="block-name-en">{{ block.nameEn }}</span>
+            </span>
+          </label>
+        </nav>
+
+        <main class="content">
+          <div v-if="currentBlock" class="content-wrapper">
+            <div class="content-header">
+              <div class="content-title-container">
+                <h2 class="content-header-title">{{ currentBlock.nameJa }}</h2>
+                <span class="content-title-en">{{ currentBlock.nameEn }}</span>
+                <span class="range-display"> 全体範囲: {{ $toUnicodeHex(currentBlock.start) }} - {{ $toUnicodeHex(currentBlock.end) }} </span>
+              </div>
+
+              <div class="pagination-controls" v-if="totalPages > 1">
+                <select v-model.number="currentPageNum">
+                  <option v-for="pageObj in pageOptions" :key="pageObj.pageNum" :value="pageObj.pageNum">
+                    {{ pageObj.pageNum }} / {{ totalPages }} ページ [{{ $toUnicodeHex(pageObj.startHex) }} - {{ $toUnicodeHex(pageObj.endHex) }}]
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid-scroll-area">
+              <div class="unicode-grid">
+                <div class="unicode-cell unicode-header top-left-corner"></div>
+                <div v-for="i in 16" :key="i" class="unicode-cell unicode-header">{{ (i - 1).toString(16).toUpperCase() }}</div>
+
+                <template v-for="row in gridRows" :key="row.rowAddr">
+                  <div class="unicode-cell row-header">{{ row.rowAddr.toString(16).toUpperCase().padStart(row.padLength, '0').slice(0, -1) }}x</div>
+                  <template v-for="cell in row.cells" :key="cell.codePoint">
+                    <div v-if="cell.type === 'normal'" class="unicode-cell char-cell" :title="$toUnicodeHex(cell.title) + ' (クリックしてコピー)'" @click="copyChar(cell.char, cell.title)">
+                      {{ cell.char }}
+                    </div>
+                    <div v-else-if="cell.type === 'control'" class="unicode-cell control-char" :title="cell.title">·</div>
+                    <div v-else class="unicode-cell out-range"></div>
+                  </template>
+                </template>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+
+      <div class="toast" v-if="toastMessage">{{ toastMessage }}</div>
+    </template>
+
+    <script>
+      const { createApp, ref, computed, watch, nextTick, onMounted } = Vue;
+
+      const app = createApp({
+        template: "#app-template",
+        setup() {
+          const unicodeBlocks = ref([]);
+          const loading = ref(true);
+          const sidebarRef = ref(null);
+
+          const selectedBlockId = ref("");
+          const currentPageNum = ref(1);
+          const PAGE_SIZE = 0x1000;
+          const toastMessage = ref("");
+          let toastTimer = null;
+          const toUnicodeHex = (val) => (val != null ? `U+${val.toString(16).toUpperCase().padStart(4, "0")}` : "");
+
+          const currentBlock = computed(() => {
+            return unicodeBlocks.value.find((b) => b.id === selectedBlockId.value);
+          });
+
+          const totalPages = computed(() => {
+            if (!currentBlock.value) return 1;
+            const totalChars = currentBlock.value.end - currentBlock.value.start + 1;
+            return Math.ceil(totalChars / PAGE_SIZE);
+          });
+
+          const pageOptions = computed(() => {
+            if (!currentBlock.value) return [];
+            const options = [];
+            const bStart = currentBlock.value.start;
+            const bEnd = currentBlock.value.end;
+
+            for (let p = 1; p <= totalPages.value; p++) {
+              let pStart = bStart + (p - 1) * PAGE_SIZE;
+              let pEnd = Math.min(bEnd, pStart + PAGE_SIZE - 1);
+              options.push({
+                pageNum: p,
+                startHex: pStart,
+                endHex: pEnd,
+              });
+            }
+            return options;
+          });
+
+          const gridRows = computed(() => {
+            if (!currentBlock.value) return [];
+            const bStart = currentBlock.value.start;
+            const bEnd = currentBlock.value.end;
+            const pStart = bStart + (currentPageNum.value - 1) * PAGE_SIZE;
+            const pEnd = Math.min(bEnd, pStart + PAGE_SIZE - 1);
+            const rows = [];
+
+            for (let rowAddr = pStart & ~0xf; rowAddr <= (pEnd & ~0xf); rowAddr += 16) {
+              const cells = [];
+              for (let col = 0; col < 16; col++) {
+                const codePoint = rowAddr + col;
+                if (codePoint < pStart || codePoint > pEnd) {
+                  cells.push({ codePoint, type: "out" });
+                } else {
+                  const char = String.fromCodePoint(codePoint);
+                  const isControl = (codePoint >= 0x0000 && codePoint <= 0x001f) || (codePoint >= 0x007f && codePoint <= 0x009f);
+                  cells.push({
+                    codePoint,
+                    char,
+                    title: codePoint,
+                    type: isControl ? "control" : "normal",
+                  });
+                }
+              }
+              rows.push({ rowAddr, padLength: bEnd > 0xffff ? 6 : 4, cells });
+            }
+            return rows;
+          });
+
+          const copyChar = (char, title) => {
+            navigator.clipboard
+              .writeText(char)
+              .then(() => {
+                showToast(`${title} (${char}) をコピーしました`);
+              })
+              .catch((err) => {
+                showToast("コピーに失敗しました");
+              });
+          };
+
+          const showToast = (msg) => {
+            toastMessage.value = msg;
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+              toastMessage.value = "";
+            }, 2000);
+          };
+
+          watch(selectedBlockId, (newId) => {
+            currentPageNum.value = 1;
+            if (newId) history.replaceState(null, "", `#${newId}`);
+          });
+
+          onMounted(async () => {
+            try {
+              const response = await fetch("./unicode_blocks.json");
+              const rawData = await response.json();
+
+              unicodeBlocks.value = rawData.map((b) => ({
+                ...b,
+                nameJa: b.nameJa || b.nameEn,
+                start: parseInt(b.start, 16),
+                end: parseInt(b.end, 16),
+                id: (b.nameEn || "").toLowerCase().replace(/[^a-z0-9]/g, "-"),
+              }));
+
+              const hash = window.location.hash.substring(1);
+              if (hash && unicodeBlocks.value.some((b) => b.id === hash)) {
+                selectedBlockId.value = hash;
+              } else {
+                selectedBlockId.value = unicodeBlocks.value[0].id;
+              }
+
+              loading.value = false;
+
+              nextTick(() => {
+                if (sidebarRef.value) {
+                  const activeEl = sidebarRef.value.querySelector(".block-label.active");
+                  if (activeEl) {
+                    activeEl.scrollIntoView({ block: "start" });
+                  }
+                }
+              });
+            } catch (e) {
+              console.error("JSONの読み込みに失敗しました", e);
+              showToast("ブロックデータの読み込みに失敗しました");
+            }
+          });
+
+          return {
+            unicodeBlocks,
+            loading,
+            sidebarRef,
+            selectedBlockId,
+            currentPageNum,
+            currentBlock,
+            totalPages,
+            pageOptions,
+            gridRows,
+            copyChar,
+            toastMessage,
+          };
+        },
+      });
+
+      app.config.globalProperties.$toUnicodeHex = (val) => {
+        return val != null ? `U+${val.toString(16).toUpperCase().padStart(4, "0")}` : "";
+      };
+
+      app.mount("#app");
+    </script>
+  </body>
+</html>

@@ -1,0 +1,235 @@
+:root {
+  --bg-color: rgba(255, 255, 0, 0.2);
+  --border-color: #dee2e6;
+  --primary-color: #0d6efd;
+  --hover-color: #f1f3f5;
+}
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background-image:
+      linear-gradient(to right, var(--bg-color) 50%, transparent 30%),
+      linear-gradient(to bottom, var(--bg-color) 50%, transparent 30%);
+    background-size: 11px 11px;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.main-container {
+  display: flex;
+  gap: 10px;
+  height: calc(100vh - 40px);
+}
+
+.sidebar {
+  width: 340px;
+  background: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 15px;
+  overflow-y: auto;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  flex-shrink: 0;
+}
+
+.block-label {
+  display: flex;
+  align-items: flex-start;
+  padding: 8px 10px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  transition: background 0.2s;
+}
+
+.block-label:hover {
+  background-color: var(--hover-color);
+}
+
+.block-label input[type="radio"] {
+  margin-right: 10px;
+  margin-top: 3px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.block-label.active {
+  background-color: #e7f5ff;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+.block-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.block-name-en {
+  font-size: 0.75rem;
+  color: #6c757d;
+  font-weight: normal;
+}
+
+.content {
+  flex: 1;
+  background: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 20px;
+  overflow-y: auto;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+}
+
+.content-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 15px;
+}
+
+.content-title-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.content-title-en {
+  font-size: 1.0rem;
+  color: #6c757d;
+  font-weight: normal;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-family: monospace;
+}
+
+.pagination-controls select {
+  padding: 4px 8px;
+  font-size: 0.95rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: #fff;
+  cursor: pointer;
+  font-family: monospace;
+}
+
+.unicode-grid {
+  display: grid;
+  grid-template-columns: 85px repeat(16, minmax(0, 1fr));
+  border-top: 1px solid var(--border-color);
+  border-left: 1px solid var(--border-color);
+  font-family: monospace;
+}
+
+.unicode-cell {
+  border-right: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+  text-align: center;
+  padding: 6px 2px;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+  height: 34px;
+  box-sizing: border-box;
+}
+
+.unicode-header {
+  background-color: #f1f3f5;
+  font-size: 0.85rem;
+  color: #495057;
+  font-weight: bold;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.row-header {
+  background-color: #f1f3f5;
+  font-size: 0.85rem;
+  color: #495057;
+  font-weight: bold;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+
+.top-left-corner {
+  z-index: 3;
+}
+
+.char-cell {
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+
+.char-cell:hover {
+  background-color: #e7f5ff;
+}
+
+.char-cell:active {
+  background-color: #d0ebff;
+}
+
+.control-char {
+  color: #adb5bd;
+  font-size: 0.8rem;
+}
+
+.out-range {
+  background-color: #f8f9fa;
+}
+
+.toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background-color: #212529;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: opacity 0.3s;
+  z-index: 1000;
+}.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.content-header-title {
+  margin: 0;
+}
+
+.range-display {
+  font-size: 0.85rem;
+  color: #6c757d;
+  font-family: monospace;
+  margin-top: 2px;
+}
+
+.grid-scroll-area {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.loading-text {
+  padding: 10px;
+  color: #6c757d;
+}

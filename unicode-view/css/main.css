@@ -133,6 +133,7 @@ body {
   border-top: 1px solid var(--border-color);
   border-left: 1px solid var(--border-color);
   font-family: monospace;
+  content-visibility: auto;
 }
 
 .unicode-cell {
@@ -147,6 +148,8 @@ body {
   background-color: #fff;
   height: 34px;
   box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
 }
 
 .unicode-header {
@@ -207,7 +210,9 @@ body {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: opacity 0.3s;
   z-index: 1000;
-}.content-wrapper {
+}
+
+.content-wrapper {
   display: flex;
   flex-direction: column;
   height: 100%;

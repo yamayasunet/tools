@@ -47,11 +47,9 @@
                 <div v-for="i in 16" :key="i" class="unicode-cell unicode-header">{{ (i - 1).toString(16).toUpperCase() }}</div>
 
                 <template v-for="row in gridRows" :key="row.rowAddr">
-                  <div class="unicode-cell row-header">{{ row.rowAddr.toString(16).toUpperCase().padStart(row.padLength, '0').slice(0, -1) }}x</div>
+                  <div class="unicode-cell row-header">{{ row.rowAddr }}</div>
                   <template v-for="cell in row.cells" :key="cell.codePoint">
-                    <div v-if="cell.type === 'normal'" class="unicode-cell char-cell" :title="$toUnicodeHex(cell.title) + ' (クリックしてコピー)'" @click="copyChar(cell.char, cell.title)">
-                      {{ cell.char }}
-                    </div>
+                    <div v-if="cell.type === 'normal'" class="unicode-cell char-cell" :title="$toUnicodeHex(cell.codePoint) + ' (クリックしてコピー)'" @click="copyChar(cell)">{{ cell.char }}</div>
                     <div v-else-if="cell.type === 'control'" class="unicode-cell control-char" :title="cell.title">·</div>
                     <div v-else class="unicode-cell out-range"></div>
                   </template>
@@ -130,21 +128,22 @@
                   cells.push({
                     codePoint,
                     char,
-                    title: codePoint,
                     type: isControl ? "control" : "normal",
                   });
                 }
               }
-              rows.push({ rowAddr, padLength: bEnd > 0xffff ? 6 : 4, cells });
+              let padLength = bEnd > 0xffff ? 6 : 4;
+              let sRowAddr = "U+" + rowAddr.toString(16).toUpperCase().padStart(padLength, "0").slice(0, -1) + "x";
+              rows.push({ rowAddr: sRowAddr, padLength, cells });
             }
             return rows;
           });
 
-          const copyChar = (char, title) => {
+          const copyChar = (cell) => {
             navigator.clipboard
-              .writeText(char)
+              .writeText(cell.char)
               .then(() => {
-                showToast(`${title} (${char}) をコピーしました`);
+                showToast(`【${cell.char}】 をコピーしました`);
               })
               .catch((err) => {
                 showToast("コピーに失敗しました");

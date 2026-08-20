@@ -14,13 +14,21 @@
       <div class="main-container">
         <nav class="sidebar" ref="sidebarRef">
           <div v-if="loading" class="loading-text">データを読み込んでいます...</div>
-          <label v-for="block in unicodeBlocks" :key="block.id" :data-id="block.id" class="block-label" :class="{ active: selectedBlockId === block.id }">
-            <input type="radio" name="unicode-block" :value="block.id" v-model="selectedBlockId" />
-            <span class="block-text">
-              <span>{{ block.nameJa }}</span>
-              <span class="block-name-en">{{ block.nameEn }}</span>
-            </span>
-          </label>
+
+          <div class="sidebar-search-container">
+            <input type="text" class="sidebar-search-input" v-model="searchQuery" placeholder="ブロック名でフィルタ..." />
+            <button class="sidebar-search-clear" v-if="searchQuery" @click="searchQuery = ''" title="クリア">×</button>
+          </div>
+
+          <div class="sidebar-list-container">
+            <label v-for="block in filteredUnicodeBlocks" :key="block.id" :data-id="block.id" class="block-label" :class="{ active: selectedBlockId === block.id }">
+              <input type="radio" name="unicode-block" :value="block.id" v-model="selectedBlockId" />
+              <span class="block-text">
+                <span>{{ block.nameJa }}</span>
+                <span class="block-name-en">{{ block.nameEn }}</span>
+              </span>
+            </label>
+          </div>
         </nav>
 
         <main class="content">
@@ -31,31 +39,25 @@
                 <span class="content-title-en">{{ currentBlock.nameEn }}</span>
                 <span class="range-display"> 全体範囲: {{ $toUnicodeHex(currentBlock.start) }} - {{ $toUnicodeHex(currentBlock.end) }} </span>
               </div>
-
-              <div class="pagination-controls" v-if="totalPages > 1">
-                <select v-model.number="currentPageNum">
-                  <option v-for="pageObj in pageOptions" :key="pageObj.pageNum" :value="pageObj.pageNum">
-                    {{ pageObj.pageNum }} / {{ totalPages }} ページ [{{ $toUnicodeHex(pageObj.startHex) }} - {{ $toUnicodeHex(pageObj.endHex) }}]
-                  </option>
-                </select>
-              </div>
             </div>
 
-            <div class="grid-scroll-area">
-              <div class="unicode-grid">
+            <div class="grid-scroll-area" ref="scrollAreaRef" @scroll="onScroll">
+              <div class="unicode-grid sticky-header-grid">
                 <div class="unicode-cell unicode-header top-left-corner"></div>
                 <div v-for="i in 16" :key="i" class="unicode-cell unicode-header">{{ (i - 1).toString(16).toUpperCase() }}</div>
+              </div>
 
-                <template v-for="row in gridRows" :key="row.rowAddr">
-                  <div class="unicode-cell row-header">{{ row.rowAddr.toString(16).toUpperCase().padStart(row.padLength, '0').slice(0, -1) }}x</div>
-                  <template v-for="cell in row.cells" :key="cell.codePoint">
-                    <div v-if="cell.type === 'normal'" class="unicode-cell char-cell" :title="$toUnicodeHex(cell.title) + ' (クリックしてコピー)'" @click="copyChar(cell.char, cell.title)">
-                      {{ cell.char }}
-                    </div>
-                    <div v-else-if="cell.type === 'control'" class="unicode-cell control-char" :title="cell.title">·</div>
-                    <div v-else class="unicode-cell out-range"></div>
+              <div class="virtual-spacer" :style="{ height: totalVirtualHeight + 'px' }">
+                <div class="unicode-grid virtual-grid" ref="gridContentRef" :style="{ transform: 'translateY(' + offsetY + 'px)' }">
+                  <template v-for="(row, index) in virtualRows" :key="row.rowAddr">
+                    <div class="unicode-cell row-header" :ref="index === 0 ? 'measuringRowRef' : null">{{ row.rowAddr }}</div>
+                    <template v-for="cell in row.cells" :key="cell.codePoint">
+                      <div v-if="cell.type === 'normal'" class="unicode-cell char-cell" :title="$toUnicodeHex(cell.codePoint) + ' (クリックしてコピー)'" @click="copyChar(cell)">{{ cell.char }}</div>
+                      <div v-else-if="cell.type === 'control'" class="unicode-cell control-char" :title="cell.title">·</div>
+                      <div v-else class="unicode-cell out-range"></div>
+                    </template>
                   </template>
-                </template>
+                </div>
               </div>
             </div>
           </div>
@@ -66,7 +68,7 @@
     </template>
 
     <script>
-      const { createApp, ref, computed, watch, nextTick, onMounted } = Vue;
+      const { createApp, ref, computed, watch, nextTick, onMounted, onUpdated } = Vue;
 
       const app = createApp({
         template: "#app-template",
@@ -74,55 +76,45 @@
           const unicodeBlocks = ref([]);
           const loading = ref(true);
           const sidebarRef = ref(null);
+          const scrollAreaRef = ref(null);
+          const measuringRowRef = ref(null);
 
           const selectedBlockId = ref("");
-          const currentPageNum = ref(1);
-          const PAGE_SIZE = 0x1000;
           const toastMessage = ref("");
           let toastTimer = null;
-          const toUnicodeHex = (val) => (val != null ? `U+${val.toString(16).toUpperCase().padStart(4, "0")}` : "");
+
+          const searchQuery = ref("");
+
+          const scrollTop = ref(0);
+          const containerHeight = ref(500);
+          const rowHeight = ref(40);
+          const BUFFER = 12;
+
+          const filteredUnicodeBlocks = computed(() => {
+            if (!searchQuery.value.trim()) return unicodeBlocks.value;
+            const q = searchQuery.value.toLowerCase();
+            return unicodeBlocks.value.filter((b) => {
+              const nameJa = (b.nameJa || "").toLowerCase();
+              const nameEn = (b.nameEn || "").toLowerCase();
+              return nameJa.includes(q) || nameEn.includes(q);
+            });
+          });
 
           const currentBlock = computed(() => {
             return unicodeBlocks.value.find((b) => b.id === selectedBlockId.value);
           });
 
-          const totalPages = computed(() => {
-            if (!currentBlock.value) return 1;
-            const totalChars = currentBlock.value.end - currentBlock.value.start + 1;
-            return Math.ceil(totalChars / PAGE_SIZE);
-          });
-
-          const pageOptions = computed(() => {
-            if (!currentBlock.value) return [];
-            const options = [];
-            const bStart = currentBlock.value.start;
-            const bEnd = currentBlock.value.end;
-
-            for (let p = 1; p <= totalPages.value; p++) {
-              let pStart = bStart + (p - 1) * PAGE_SIZE;
-              let pEnd = Math.min(bEnd, pStart + PAGE_SIZE - 1);
-              options.push({
-                pageNum: p,
-                startHex: pStart,
-                endHex: pEnd,
-              });
-            }
-            return options;
-          });
-
-          const gridRows = computed(() => {
+          const allRows = computed(() => {
             if (!currentBlock.value) return [];
             const bStart = currentBlock.value.start;
             const bEnd = currentBlock.value.end;
-            const pStart = bStart + (currentPageNum.value - 1) * PAGE_SIZE;
-            const pEnd = Math.min(bEnd, pStart + PAGE_SIZE - 1);
             const rows = [];
 
-            for (let rowAddr = pStart & ~0xf; rowAddr <= (pEnd & ~0xf); rowAddr += 16) {
+            for (let rowAddr = bStart & ~0xf; rowAddr <= (bEnd & ~0xf); rowAddr += 16) {
               const cells = [];
               for (let col = 0; col < 16; col++) {
                 const codePoint = rowAddr + col;
-                if (codePoint < pStart || codePoint > pEnd) {
+                if (codePoint < bStart || codePoint > bEnd) {
                   cells.push({ codePoint, type: "out" });
                 } else {
                   const char = String.fromCodePoint(codePoint);
@@ -130,41 +122,74 @@
                   cells.push({
                     codePoint,
                     char,
-                    title: codePoint,
                     type: isControl ? "control" : "normal",
                   });
                 }
               }
-              rows.push({ rowAddr, padLength: bEnd > 0xffff ? 6 : 4, cells });
+              let padLength = bEnd > 0xffff ? 6 : 4;
+              let sRowAddr = "U+" + rowAddr.toString(16).toUpperCase().padStart(padLength, "0").slice(0, -1) + "x";
+              rows.push({ rowAddr: sRowAddr, padLength, cells });
             }
             return rows;
           });
 
-          const copyChar = (char, title) => {
-            navigator.clipboard
-              .writeText(char)
-              .then(() => {
-                showToast(`${title} (${char}) をコピーしました`);
-              })
-              .catch((err) => {
-                showToast("コピーに失敗しました");
-              });
+          const totalVirtualHeight = computed(() => {
+            return allRows.value.length * rowHeight.value;
+          });
+
+          const virtualRows = computed(() => {
+            const rows = allRows.value;
+            if (rows.length === 0) return [];
+
+            const totalRowsCount = rows.length;
+            const visibleCount = Math.ceil(containerHeight.value / rowHeight.value);
+
+            let startIndex = Math.floor(scrollTop.value / rowHeight.value) - BUFFER;
+            startIndex = Math.max(0, startIndex);
+
+            let endIndex = startIndex + visibleCount + BUFFER * 2;
+            endIndex = Math.min(totalRowsCount, endIndex);
+
+            return rows.slice(startIndex, endIndex);
+          });
+
+          const offsetY = computed(() => {
+            const rows = allRows.value;
+            if (rows.length === 0) return 0;
+            let startIndex = Math.floor(scrollTop.value / rowHeight.value) - BUFFER;
+            startIndex = Math.max(0, startIndex);
+            return startIndex * rowHeight.value;
+          });
+
+          const onScroll = (e) => {
+            scrollTop.value = e.target.scrollTop;
           };
 
-          const showToast = (msg) => {
-            toastMessage.value = msg;
-            if (toastTimer) clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => {
-              toastMessage.value = "";
-            }, 2000);
+          const updateRowHeight = () => {
+            nextTick(() => {
+              if (measuringRowRef.value) {
+                const el = Array.isArray(measuringRowRef.value) ? measuringRowRef.value[0] : measuringRowRef.value;
+                if (el && el.offsetHeight) {
+                  rowHeight.value = el.offsetHeight;
+                }
+              }
+            });
           };
 
-          watch(selectedBlockId, (newId) => {
-            currentPageNum.value = 1;
-            if (newId) history.replaceState(null, "", `#${newId}`);
+          watch(selectedBlockId, () => {
+            scrollTop.value = 0;
+            if (scrollAreaRef.value) scrollAreaRef.value.scrollTop = 0;
+            if (selectedBlockId.value && history.state !== `#${selectedBlockId.value}`) {
+              history.replaceState(null, "", `#${selectedBlockId.value}`);
+            }
+            updateRowHeight();
           });
 
           onMounted(async () => {
+            if (scrollAreaRef.value) {
+              containerHeight.value = scrollAreaRef.value.clientHeight || 500;
+            }
+
             try {
               const response = await fetch("./unicode_blocks.json");
               const rawData = await response.json();
@@ -187,6 +212,10 @@
               loading.value = false;
 
               nextTick(() => {
+                if (scrollAreaRef.value) {
+                  containerHeight.value = scrollAreaRef.value.clientHeight || 500;
+                }
+                updateRowHeight();
                 if (sidebarRef.value) {
                   const activeEl = sidebarRef.value.querySelector(".block-label.active");
                   if (activeEl) {
@@ -200,16 +229,43 @@
             }
           });
 
+          onUpdated(() => {
+            updateRowHeight();
+          });
+
+          const copyChar = (cell) => {
+            navigator.clipboard
+              .writeText(cell.char)
+              .then(() => {
+                showToast(`【${cell.char}】 をコピーしました`);
+              })
+              .catch((err) => {
+                showToast("コピーに失敗しました");
+              });
+          };
+
+          const showToast = (msg) => {
+            toastMessage.value = msg;
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+              toastMessage.value = "";
+            }, 2000);
+          };
+
           return {
             unicodeBlocks,
+            filteredUnicodeBlocks,
+            searchQuery,
             loading,
             sidebarRef,
+            scrollAreaRef,
+            measuringRowRef,
             selectedBlockId,
-            currentPageNum,
             currentBlock,
-            totalPages,
-            pageOptions,
-            gridRows,
+            virtualRows,
+            totalVirtualHeight,
+            offsetY,
+            onScroll,
             copyChar,
             toastMessage,
           };
